@@ -11,8 +11,8 @@ bool setMode = false;         // Set mode flag
 int currentOption = 0;        // 0 for T1, 1 for T2
 
 // Predefined temperature set points
-float set_T1 = 25; // Default set point for T1
-float set_T2 = 25; // Default set point for T2
+double set_T1 = 25; // Default set point for T1
+double set_T2 = 25; // Default set point for T2
 
 void setupEncoder()
 {

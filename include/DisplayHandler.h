@@ -9,11 +9,10 @@ extern bool setMode;
 extern int currentOption;
 
 // External variables (from TemperatureHandler)
-extern int set_T1, set_T2;
-extern float T1, T2;
+extern double set_T1, set_T2;
+extern double T1, T2;
 
 void setupDisplay();
-void updateTemperature(float T1, float T2);
 void updateDisplay();
 void set_mode();
 

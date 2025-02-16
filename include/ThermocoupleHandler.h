@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-extern float T1, T2; // Declare global variables
+extern double T1, T2; // Declare global variables
 
 void setupThermocouples();
 void readTemperatures();
