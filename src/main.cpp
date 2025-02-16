@@ -1,145 +1,51 @@
 #include <Arduino.h>
-#include <Wire.h>
-#include <LiquidCrystal_I2C.h>
-#include <Encoder.h>
+#include "ThermocoupleHandler.h"
+#include "DisplayHandler.h"
+#include "EncoderHandler.h"
 
-// Prototipe
-void updateDisplay();
-void set_mode();
+unsigned long previousTemperatureMillis = 0; // To track temperature update time
+unsigned long previousEncoderMillis = 0;     // To track encoder update time
 
-// Initialize LCD
-LiquidCrystal_I2C lcd(0x27, 16, 2);
-
-// Rotary Encoder Pins
-#define ENCODER_PIN_A 2
-#define ENCODER_PIN_B 3
-#define ENCODER_BUTTON_PIN 4
-
-float temp_step = 1;
-
-Encoder myEnc(ENCODER_PIN_A, ENCODER_PIN_B);
-
-// This variables are modified
-int currentOption = 0; // 0 = T1, 1 = T2
-int lastEncoderPosition = -1;
-bool buttonPressed = false;
-bool setMode = false; // If true, the encoder adjusts the target temperature
-
-// Example temperatures
-float T1 = 432.69, T2 = 227.56;     // Read from sensors in real application
-float set_T1 = 30.0, set_T2 = 35.0; // Adjustable target temperatures
+const long temperatureInterval = 2000; // Interval for temperature update (1000ms)
+const long encoderInterval = 100;      // Interval for encoder update (100ms)
 
 void setup()
 {
-  lcd.init();
-  lcd.backlight();
-  pinMode(ENCODER_BUTTON_PIN, INPUT_PULLUP);
-  updateDisplay();
-}
+    // Initialize Serial Monitor for debugging
+    Serial.begin(9600);
+    Serial.println("System Initialized");
 
-// Ternary operators (condition ? value_if_true : value_if_false;)
+    setupDisplay();
+    setupEncoder();
+    setupThermocouples();
+
+    updateDisplay(); // Initial display update
+}
 
 void loop()
 {
-  int newEncoderPosition = myEnc.read() / 2; // Adjust sensitivity
+    unsigned long currentMillis = millis(); // Get the current time
 
-  // Move between options
-  if (newEncoderPosition != lastEncoderPosition)
-  {
-    // If button is pressed, setMode is true
-    if (setMode)
+    // Handle encoder every 100ms
+    if (currentMillis - previousEncoderMillis >= encoderInterval)
     {
-      // Set T1 temperature
-      if (currentOption == 0)
-      {
-        set_T1 += (newEncoderPosition > lastEncoderPosition) ? -temp_step : temp_step;
-      }
-      // Set T2 temperature
-      else if (currentOption == 1)
-      {
-        set_T2 += (newEncoderPosition > lastEncoderPosition) ? -temp_step : temp_step;
-      }
-      set_mode(); // Update display while adjusting
-    }
-    else
-    {
-      // Switch between T1 and T2 selection
-      currentOption = (newEncoderPosition > lastEncoderPosition) ? 1 : 0;
-      updateDisplay(); // Update selection
+        previousEncoderMillis = currentMillis;
+        handleEncoder(); // Handle encoder inputs and update the display
     }
 
-    lastEncoderPosition = newEncoderPosition;
-  }
-
-  // Handle Button Press to Toggle Set Mode
-  if (digitalRead(ENCODER_BUTTON_PIN) == LOW)
-  {
-    if (!buttonPressed)
+    // Update temperature every 1000ms
+    if (currentMillis - previousTemperatureMillis >= temperatureInterval)
     {
-      buttonPressed = true;
-      setMode = !setMode; // Toggle mode
-      if (!setMode)
-      {
-        updateDisplay(); // Immediately refresh when exiting set mode
-      }
-      else
-      {
-        set_mode(); // Show SetMode sreen
-      }
+        previousTemperatureMillis = currentMillis;
+        if (!setMode)
+        {                       // Only update temperatures when not in setMode
+            readTemperatures(); // Read temperatures from the sensors
+            updateDisplay();    // Update the display with new temperature values
+        }
     }
-  }
-  else
-  {
-    buttonPressed = false;
-    // updateDisplay();
-  }
-}
 
-// This function update the display
-void updateDisplay()
-{
-  lcd.clear();
+    // Add other logic for button presses or other actions if needed
+    // For example: handle button press, toggle modes, etc.
 
-  // First row - T1
-  lcd.setCursor(0, 0);
-  lcd.print(currentOption == 0 ? ">T1:" : " T1:");
-  lcd.setCursor(5, 0);
-  lcd.print(T1, 1);
-  lcd.print((char)223);
-  lcd.print("C ");
-  // lcd.setCursor(11, 0);
-  // lcd.print("Set:"); lcd.print(setTempT1, 1);
-
-  // Second row - T2
-  lcd.setCursor(0, 1);
-  lcd.print(currentOption == 1 ? ">T2:" : " T2:");
-  lcd.setCursor(5, 1);
-  lcd.print(T2, 1);
-  lcd.print((char)223);
-  lcd.print("C ");
-  // lcd.setCursor(11, 1);
-  // lcd.print("Set:"); lcd.print(setTempT2, 1);
-}
-
-void set_mode()
-{
-  // Set T1
-  if (currentOption == 0)
-  {
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("Set T1:");
-    lcd.setCursor(5, 1);
-    lcd.print(set_T1);
-  }
-  // Set T2
-  else if (currentOption == 1)
-  {
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("Set T2:");
-    lcd.setCursor(5, 1);
-    lcd.print(set_T2);
-  }
-  // updateDisplay();
+    delay(10); // Optional delay, small delay to reduce CPU load
 }
