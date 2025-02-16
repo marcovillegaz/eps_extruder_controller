@@ -1,3 +1,5 @@
+# TEMEPRATURE CONTROLER FOR PLASTIC EXTRUDER
+
 This is the code to control the heating elements of a plastic extruder
 using Arduino Mega 2520. 
 
@@ -7,3 +9,12 @@ The hardware is composed by:
 - 2 cylindrical heating element
 - 2 MAx6675 module to digitiliza the thermocouple signals
 - Encoder to set the temeprature via display. 
+
+
+# FUTURE TASKS
+Atomatize the code to include:
+  
+#include "ThermocoupleHandler.h"
+#include "DisplayHandler.h"
+#include "EncoderHandler.h"
+#include "PIDController.h"
