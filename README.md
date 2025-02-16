@@ -10,11 +10,11 @@ The hardware is composed by:
 - 2 MAx6675 module to digitiliza the thermocouple signals
 - Encoder to set the temeprature via display. 
 
+# Set mode
 
-# FUTURE TASKS
-Atomatize the code to include:
-  
-#include "ThermocoupleHandler.h"
-#include "DisplayHandler.h"
-#include "EncoderHandler.h"
-#include "PIDController.h"
+After the starting messege you will the temperatrue of both termocuple in celcius degress. The display is updated every 2000ms. 
+
+
+# Future Tasks
+In future version change to a object oriented programing logic. 
+
